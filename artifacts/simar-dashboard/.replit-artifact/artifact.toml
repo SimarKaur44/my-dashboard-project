@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Simar's Dashboard"
+description = "A personal productivity dashboard for Simar with a Dark Academia × Burgundy Luxe × Feminine CEO aesthetic. Features include GIS study roadmap tracking, university application tracker, research tracker, weekly planner with sticky notes, vision board, document organizer, win counter, milestone tracker, progress rings, daily focus, and a curated quote collection — all with glassmorphism cards floating over a customizable wallpaper."
+version = "1.0.0"
+id = "artifacts/simar-dashboard"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21713
+
+[services.development]
+run = "pnpm --filter @workspace/simar-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/simar-dashboard", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/simar-dashboard/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21713"
+BASE_PATH = "/"

@@ -1,0 +1,1190 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Simar's personal dashboard API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: dashboard
+    description: Dashboard summary
+  - name: progress
+    description: Progress tracking per category
+  - name: roadmap
+    description: Roadmap items / checklist
+  - name: wins
+    description: Win counter
+  - name: milestones
+    description: Milestones tracking
+  - name: focus
+    description: Daily focus
+  - name: planner
+    description: Weekly planner sticky notes
+  - name: vision
+    description: Vision board
+  - name: documents
+    description: Document organizer
+  - name: quotes
+    description: Quote collection
+  - name: storage
+    description: Object storage upload and serving endpoints.
+  - name: calendar
+    description: Dated personal tasks and semester work tracking.
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get full dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /progress:
+    get:
+      operationId: getAllProgress
+      tags: [progress]
+      summary: Get progress for all categories
+      responses:
+        "200":
+          description: List of category progress
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryProgress"
+
+  /progress/{category}:
+    get:
+      operationId: getCategoryProgress
+      tags: [progress]
+      summary: Get progress for a specific category
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category progress details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryProgress"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /roadmap-items:
+    get:
+      operationId: getRoadmapItems
+      tags: [roadmap]
+      summary: List roadmap items, optionally filtered by category
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of roadmap items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoadmapItem"
+    post:
+      operationId: createRoadmapItem
+      tags: [roadmap]
+      summary: Create a new roadmap item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoadmapItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoadmapItem"
+
+  /roadmap-items/{id}:
+    patch:
+      operationId: updateRoadmapItem
+      tags: [roadmap]
+      summary: Update a roadmap item (toggle completion, rename)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoadmapItemUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoadmapItem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteRoadmapItem
+      tags: [roadmap]
+      summary: Delete a roadmap item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /wins:
+    get:
+      operationId: getWins
+      tags: [wins]
+      summary: Get all wins with monthly summary
+      responses:
+        "200":
+          description: Wins data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WinsSummary"
+    post:
+      operationId: addWin
+      tags: [wins]
+      summary: Add a new win
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WinInput"
+      responses:
+        "201":
+          description: Win added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Win"
+
+  /wins/{id}:
+    delete:
+      operationId: deleteWin
+      tags: [wins]
+      summary: Delete a win
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /milestones:
+    get:
+      operationId: getMilestones
+      tags: [milestones]
+      summary: List all milestones
+      responses:
+        "200":
+          description: List of milestones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Milestone"
+    post:
+      operationId: createMilestone
+      tags: [milestones]
+      summary: Create a new milestone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MilestoneInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Milestone"
+
+  /milestones/{id}:
+    patch:
+      operationId: updateMilestone
+      tags: [milestones]
+      summary: Update a milestone
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MilestoneUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Milestone"
+    delete:
+      operationId: deleteMilestone
+      tags: [milestones]
+      summary: Delete a milestone
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /focus:
+    get:
+      operationId: getFocus
+      tags: [focus]
+      summary: Get today's daily focus
+      responses:
+        "200":
+          description: Today's focus
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyFocus"
+    post:
+      operationId: setFocus
+      tags: [focus]
+      summary: Set or update today's daily focus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DailyFocusInput"
+      responses:
+        "200":
+          description: Focus set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyFocus"
+
+  /planner:
+    get:
+      operationId: getPlannerNotes
+      tags: [planner]
+      summary: Get all weekly planner notes
+      responses:
+        "200":
+          description: List of planner notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlannerNote"
+    post:
+      operationId: createPlannerNote
+      tags: [planner]
+      summary: Create a planner note for a day
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlannerNoteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlannerNote"
+
+  /planner/{id}:
+    patch:
+      operationId: updatePlannerNote
+      tags: [planner]
+      summary: Update a planner note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlannerNoteUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlannerNote"
+    delete:
+      operationId: deletePlannerNote
+      tags: [planner]
+      summary: Delete a planner note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /calendar/tasks:
+    get:
+      operationId: getCalendarTasks
+      tags: [calendar]
+      summary: List dated calendar tasks
+      responses:
+        "200":
+          description: Calendar tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CalendarTask"
+    post:
+      operationId: createCalendarTask
+      tags: [calendar]
+      summary: Create a dated task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarTaskInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarTask"
+
+  /calendar/tasks/{id}:
+    patch:
+      operationId: updateCalendarTask
+      tags: [calendar]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarTaskUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarTask"
+    delete:
+      operationId: deleteCalendarTask
+      tags: [calendar]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /vision-board:
+    get:
+      operationId: getVisionBoard
+      tags: [vision]
+      summary: Get all vision board items
+      responses:
+        "200":
+          description: List of vision board items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisionItem"
+    post:
+      operationId: createVisionItem
+      tags: [vision]
+      summary: Add a vision board item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisionItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisionItem"
+
+  /vision-board/{id}:
+    delete:
+      operationId: deleteVisionItem
+      tags: [vision]
+      summary: Delete a vision board item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /documents:
+    get:
+      operationId: getDocuments
+      tags: [documents]
+      summary: List documents optionally filtered by category
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: createDocument
+      tags: [documents]
+      summary: Add a document entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /documents/{id}:
+    patch:
+      operationId: updateDocument
+      tags: [documents]
+      summary: Update document metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a document entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /quotes:
+    get:
+      operationId: getQuotes
+      tags: [quotes]
+      summary: List all quotes, optionally filtered by category
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Quote"
+    post:
+      operationId: createQuote
+      tags: [quotes]
+      summary: Add a quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /quotes/random:
+    get:
+      operationId: getRandomQuote
+      tags: [quotes]
+      summary: Get a random quote, optionally filtered by category
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A random quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /quotes/{id}:
+    delete:
+      operationId: deleteQuote
+      tags: [quotes]
+      summary: Delete a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /storage/uploads/request-url:
+    post:
+      tags: [storage]
+      operationId: requestUploadUrl
+      summary: Request a presigned URL for file upload
+      description: |
+        Returns a presigned GCS URL for direct upload. The client sends JSON
+        metadata here, then uploads the file directly to the returned URL.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadUrlRequest'
+      responses:
+        '200':
+          description: Presigned upload URL generated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadUrlResponse'
+        '400':
+          description: Missing or invalid required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /storage/objects/{objectPath}:
+    get:
+      tags: [storage]
+      operationId: getStorageObject
+      summary: Serve an object entity from PRIVATE_OBJECT_DIR
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object content streamed with correct Content-Type.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Object not found.
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [dashboard]
+      summary: Get dashboard settings (wallpaper, blur, name, etc.)
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+    patch:
+      operationId: updateSettings
+      tags: [dashboard]
+      summary: Update dashboard settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsUpdate"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required: [greeting, quote, progressRings, streak, currentSemester, winsThisMonth, dailyFocus]
+      properties:
+        greeting:
+          type: string
+        quote:
+          $ref: "#/components/schemas/Quote"
+        progressRings:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryProgress"
+        streak:
+          type: number
+        currentSemester:
+          type: string
+        winsThisMonth:
+          type: number
+        dailyFocus:
+          type: ["string", "null"]
+
+    CategoryProgress:
+      type: object
+      required: [category, label, emoji, percentage, completedItems, totalItems]
+      properties:
+        category:
+          type: string
+        label:
+          type: string
+        emoji:
+          type: string
+        percentage:
+          type: number
+        completedItems:
+          type: number
+        totalItems:
+          type: number
+
+    RoadmapItem:
+      type: object
+      required: [id, category, title, completed, order, createdAt]
+      properties:
+        id:
+          type: number
+        category:
+          type: string
+        title:
+          type: string
+        completed:
+          type: boolean
+        order:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        notes:
+          type: ["string", "null"]
+        status:
+          type: ["string", "null"]
+        contactEmail:
+          type: ["string", "null"]
+        linkUrl:
+          type: ["string", "null"]
+
+    RoadmapItemInput:
+      type: object
+      required: [category, title]
+      properties:
+        category:
+          type: string
+        title:
+          type: string
+        order:
+          type: number
+
+    RoadmapItemUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        completed:
+          type: boolean
+        order:
+          type: number
+        notes:
+          type: string
+        status:
+          type: string
+        contactEmail:
+          type: string
+        linkUrl:
+          type: string
+
+    Win:
+      type: object
+      required: [id, description, createdAt]
+      properties:
+        id:
+          type: number
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    WinInput:
+      type: object
+      required: [description]
+      properties:
+        description:
+          type: string
+
+    WinsSummary:
+      type: object
+      required: [wins, totalThisMonth, total]
+      properties:
+        wins:
+          type: array
+          items:
+            $ref: "#/components/schemas/Win"
+        totalThisMonth:
+          type: number
+        total:
+          type: number
+
+    Milestone:
+      type: object
+      required: [id, title, milestoneType, completed]
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        milestoneType:
+          type: string
+          description: "Type: checkbox, progress, countdown, counter"
+        completed:
+          type: boolean
+        targetCount:
+          type: ["number", "null"]
+        currentCount:
+          type: ["number", "null"]
+        targetDate:
+          type: ["string", "null"]
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+
+    MilestoneInput:
+      type: object
+      required: [title, milestoneType]
+      properties:
+        title:
+          type: string
+        milestoneType:
+          type: string
+        targetCount:
+          type: number
+        targetDate:
+          type: string
+          format: date
+
+    MilestoneUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        completed:
+          type: boolean
+        currentCount:
+          type: number
+        targetCount:
+          type: number
+        targetDate:
+          type: string
+          format: date
+
+    DailyFocus:
+      type: object
+      required: [id, text, date]
+      properties:
+        id:
+          type: number
+        text:
+          type: string
+        date:
+          type: string
+          format: date
+
+    DailyFocusInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+
+    PlannerNote:
+      type: object
+      required: [id, dayOfWeek, content, weekStart]
+      properties:
+        id:
+          type: number
+        dayOfWeek:
+          type: string
+        content:
+          type: string
+        weekStart:
+          type: string
+          format: date
+
+    PlannerNoteInput:
+      type: object
+      required: [dayOfWeek, content, weekStart]
+      properties:
+        dayOfWeek:
+          type: string
+        content:
+          type: string
+        weekStart:
+          type: string
+          format: date
+
+    PlannerNoteUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+
+    CalendarTask:
+      type: object
+      required: [id, title, date, completed, createdAt]
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        date:
+          type: string
+          format: date
+        notes:
+          type: ["string", "null"]
+        completed:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CalendarTaskInput:
+      type: object
+      required: [title, date]
+      properties:
+        title:
+          type: string
+        date:
+          type: string
+          format: date
+        notes:
+          type: string
+
+    CalendarTaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        date:
+          type: string
+          format: date
+        notes:
+          type: string
+        completed:
+          type: boolean
+
+    VisionItem:
+      type: object
+      required: [id, type, content, createdAt]
+      properties:
+        id:
+          type: number
+        type:
+          type: string
+          description: "image or quote"
+        content:
+          type: string
+          description: "URL for images, text for quotes"
+        caption:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    VisionItemInput:
+      type: object
+      required: [type, content]
+      properties:
+        type:
+          type: string
+        content:
+          type: string
+        caption:
+          type: string
+
+    Document:
+      type: object
+      required: [id, category, name, lastUpdated]
+      properties:
+        id:
+          type: number
+        category:
+          type: string
+        name:
+          type: string
+        lastUpdated:
+          type: string
+          format: date
+        notes:
+          type: ["string", "null"]
+        fileUrl:
+          type: ["string", "null"]
+          description: "Object storage path for the uploaded file (e.g. /objects/uploads/uuid)"
+
+    DocumentInput:
+      type: object
+      required: [category, name]
+      properties:
+        category:
+          type: string
+        name:
+          type: string
+        notes:
+          type: string
+        fileUrl:
+          type: string
+          description: "Object storage path returned by the upload endpoint"
+
+    DocumentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        notes:
+          type: string
+        lastUpdated:
+          type: string
+          format: date
+        fileUrl:
+          type: string
+          description: "Object storage path returned by the upload endpoint"
+
+    Quote:
+      type: object
+      required: [id, text, category]
+      properties:
+        id:
+          type: number
+        text:
+          type: string
+        category:
+          type: string
+        author:
+          type: ["string", "null"]
+
+    QuoteInput:
+      type: object
+      required: [text, category]
+      properties:
+        text:
+          type: string
+        category:
+          type: string
+        author:
+          type: string
+
+    Settings:
+      type: object
+      required: [id, name, wallpaper, blurAmount, darknessAmount, currentSemester]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        wallpaper:
+          type: string
+          description: "built-in wallpaper key or custom URL"
+        blurAmount:
+          type: number
+        darknessAmount:
+          type: number
+        currentSemester:
+          type: string
+
+    SettingsUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        wallpaper:
+          type: string
+        blurAmount:
+          type: number
+        darknessAmount:
+          type: number
+        currentSemester:
+          type: string
+
+    UploadUrlRequest:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name:
+          type: string
+        size:
+          type: number
+        contentType:
+          type: string
+
+    UploadUrlResponse:
+      type: object
+      required: [uploadURL, objectPath]
+      properties:
+        uploadURL:
+          type: string
+          description: Presigned GCS URL for PUT upload.
+        objectPath:
+          type: string
+          description: Normalized object path (e.g. /objects/uploads/uuid). Store this in your database.
+        metadata:
+          $ref: '#/components/schemas/UploadUrlRequest'
