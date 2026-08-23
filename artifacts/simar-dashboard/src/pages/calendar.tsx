@@ -37,8 +37,8 @@ export default function CalendarPage() {
     });
   }, [month]);
 
-  const selectedTasks = tasks.filter(t => t.date === selectedDate);
-  const workedDays = new Set(tasks.filter(t => t.completed).map(t => t.date)).size;
+  const selectedTasks = tasks.filter(t => String(t.date).slice(0, 10) === selectedDate); 
+  const workedDays = new Set(tasks.filter(t => t.completed).map(t => String(t.date).slice(0, 10))).size;
   const today = formatKey(new Date());
 
   const addTask = (e: React.FormEvent) => {
@@ -73,7 +73,7 @@ export default function CalendarPage() {
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => <div key={day} className="text-[10px] text-primary uppercase tracking-widest py-2">{day}</div>)}
             {days.map(day => {
               const key = formatKey(day);
-              const dayTasks = tasks.filter(t => t.date === key);
+              const dayTasks = tasks.filter(t => String(t.date).slice(0, 10) === key);
               const isCurrentMonth = day.getMonth() === month.getMonth();
               return (
                 <button key={key} onClick={() => setSelectedDate(key)} className={`min-h-20 rounded-lg p-2 text-left border transition-colors ${selectedDate === key ? "border-primary bg-primary/15" : "border-transparent hover:border-white/20 bg-white/5"} ${!isCurrentMonth ? "opacity-30" : ""}`}>
